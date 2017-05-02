@@ -11,15 +11,21 @@ namespace MySecondDiscordBot
         static void Main(string[] args) =>
             new Program().Start().GetAwaiter().GetResult();
 
+        private CommandService commands;
         private DiscordSocketClient client;
         private CommandHandler handler;
 
         private async Task Start()
         {
             //Instatiate WebSocket client
-            client = new DiscordSocketClient();
+            client = new DiscordSocketClient(new DiscordSocketConfig
+            {
+                WebSocketProvider = Discord.Net.Providers.WS4Net.WS4NetProvider.Instance
+            });
 
-            var token = "Token Here Guys";
+            var token = "MzA0MzMxMzg4MjU1OTkzODU4.C-jiTQ.gcTHVLOEa5stdoXRABLEFGuJTGU";
+
+            client.Log += Log;
 
             //Connect to discord
             await client.LoginAsync(TokenType.Bot, token, true);
@@ -38,7 +44,7 @@ namespace MySecondDiscordBot
 
         private Task Log(LogMessage msg)
         {
-            Console.WriteLine( msg.ToString());
+            Console.WriteLine(msg.ToString());
             return Task.CompletedTask;
         }
     }

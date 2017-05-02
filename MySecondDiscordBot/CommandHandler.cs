@@ -22,7 +22,7 @@ namespace MySecondDiscordBot
             client = _map.Get<DiscordSocketClient>();
             commands = new CommandService();
 
-            _map.Add(commands);
+            //_map.Add(commands);
 
             map = _map;
 
