@@ -1,0 +1,3 @@
+# MySecondDiscordBot
+
+DiscordBot LOL
