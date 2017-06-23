@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Discord;
+using System.Data.SqlClient;
 using Discord.Commands;
 using Discord.WebSocket;
 using System.Reflection;
@@ -30,6 +27,30 @@ namespace MySecondDiscordBot
             await commands.AddModulesAsync(Assembly.GetEntryAssembly());
 
             client.MessageReceived += HandleCommand;
+            client.GuildMemberUpdated += UserUpdated;
+        }
+
+        
+        //function called when user updates status, spits out log to console
+        private async Task UserUpdated(SocketGuildUser userBefore, SocketGuildUser userAfter)
+        {
+            await Task.Run(() =>
+            {
+                Console.WriteLine("{0}: {1} was    {2} - {3}", DateTime.Now.ToString(), userBefore.Username.ToString(), userBefore.Status.ToString(), userBefore.Game.ToString());
+                Console.WriteLine("{0}: {1} is now {2} - {3}", DateTime.Now.ToString(), userAfter.Username.ToString(), userAfter.Status.ToString(), userAfter.Game.ToString());
+            });
+        }
+
+        //collects status change and uploads to database
+        private async Task UpdateSQLServer(SocketGuildUser userBefore, SocketGuildUser userAfter)
+        {
+            await Task.Run(() =>
+            {
+                string connectionString = null;
+                SqlConnection cnn;
+
+
+            });
         }
 
         private async Task HandleCommand(SocketMessage parameterMessage)
@@ -54,5 +75,7 @@ namespace MySecondDiscordBot
             if (!result.IsSuccess)
                 await message.Channel.SendMessageAsync($"**Error:** {result.ErrorReason}");
         }
+
+        
     }
 }
