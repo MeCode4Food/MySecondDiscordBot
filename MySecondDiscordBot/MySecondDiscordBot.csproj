@@ -181,7 +181,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandHandler.cs" />
+    <Compile Include="Database.cs" />
     <Compile Include="DiscordModules.cs" />
+    <Compile Include="tableName.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

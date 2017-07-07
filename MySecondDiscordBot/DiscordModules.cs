@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
+using System.Data.SqlClient;
 
 namespace MySecondDiscordBot
 {
@@ -119,17 +121,162 @@ namespace MySecondDiscordBot
         public async Task Help()
         {
             //await Context.Channel.SendMessageAsync("test").ConfigureAwait(false);
-            await ReplyAsync("Discord Bot ChickBot v0.3 by Chick\n\n");
-            await ReplyAsync("Here are the current list of commands:\n");
-            await ReplyAsync("- !starcraft : Spits out hot garbage about 1v1 in Starcraft.\n");
-            await ReplyAsync("- !hello : Converse with the bot you lonely ass. Bot replies 'world!'. \n");
-            await ReplyAsync("- !whoami : Bot identifies your being and replies in kind.\n");
-            await ReplyAsync("- !announce 'message' : ChickBot spits out the message, telling people you said it. \n");
-            await ReplyAsync("- !pun : Forces bot to spit out bad puns from a certain pun.txt");
+            await ReplyAsync("Discord Bot ChickBot v0.7 by Chick\n\n"                                       + 
+                "Here are the current list of commands:\n"                                                  + 
+                "- !starcraft : Spits out hot garbage about 1v1 in Starcraft.\n"                            +
+                "!hello : Converse with the bot you lonely ass. Bot replies 'world!'. \n"                   + 
+                "- !whoami : Bot identifies your being and replies in kind.\n"                              + 
+                "- !announce 'message' : ChickBot spits out the message, telling people you said it. \n"    +
+                "- !pun : Forces bot to spit out bad puns from a certain pun.txt\n"                         +
+                "- !updateusers : Updates SQL database for discord users only - Limited to Chick");
 
         }
 
-        
+        [Command("updateusers")]
+        [Summary("Updates user tables in database")]
+        public async Task UpdateUser()
+        {
+            //Console.WriteLine(string.Format("{0}", Context.User));
+
+            if (string.Format("{0}", Context.User) == "cheecken0#7481")
+            {
+                await Task.Run(() =>
+                {
+                    var database = new Database("discord");
+
+                    var guildUsers = Context.Guild.GetUsersAsync().Result;
+
+                    var userList = Database.CheckExistingUser();
+
+                    StringBuilder sb = new StringBuilder();
+
+                    //SqlParameter paramUserId = new SqlParameter();
+                    //SqlParameter paramUserIgn = new SqlParameter();
+                    //SqlParameter paramUserJoinDate = new SqlParameter();
+                    //SqlParameter paramUserLeftDate = new SqlParameter();
+                    //SqlParameter paramUserIsJoined = new SqlParameter();
+
+                    //paramUserId.ParameterName = "@UserId";
+                    //paramUserIgn.ParameterName = "@UserIgn";
+                    //paramUserJoinDate.ParameterName = "@UserJoinDate";
+                    //paramUserLeftDate.ParameterName = "@UserLeftDate";
+                    //paramUserIsJoined.ParameterName = "@UserIsJoined";
+
+                    sb.Append(string.Format("INSERT INTO discorduser (user_id, user_ign, user_joindate, user_leftdate, user_isjoined) VALUES "));
+
+                    foreach (SocketGuildUser user in guildUsers)
+                    {
+                        sb.Append(string.Format("({0}, {1}, {2}, {3}, {4}) ,", 
+                            "'" + user.Id + "'", 
+                            "'" + user.Username + "'", 
+                            "'" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "'",
+                            "''",
+                            '1'
+                            ));
+                    }
+
+                    sb.Remove(sb.Length - 1, 1); //remove the final ','
+
+
+                    //sb.Append("SET ANSI_WARNINGS OFF; ");
+                    //sb.Append("INSERT INTO discorduser (user_id, user_ign, user_joindate, user_leftdate, user_isjoined) VALUES('143615300242374657', 'shuanjin', '2017-07-05 21:41:02.276', '', 1) ");
+                    //sb.Append("GO");
+
+                    string query = sb.ToString();
+
+                    SqlConnection connection = new SqlConnection();
+
+                    Console.WriteLine(string.Format("Executing Command: UpdateUser"));
+
+                    //table is the data (output) from which the query str provides
+                    try
+                    {
+                        var table = database.ExecuteQuery(query);
+                    }
+                    catch
+                    {
+                        Console.WriteLine(string.Format("Error Executing Command: UpdateUser"));
+                    }
+
+                    database.CloseConnection();
+                });
+            }
+            else
+            {
+                await ReplyAsync(string.Format("You do not have the permissions to do this, {0}.", Context.User.Mention));
+            }
+        }
+
+        [Command("sqltest")]
+        [Summary("does some sql testing")]
+        public async Task SQLTest(params string[] str)
+        {
+            //Console.WriteLine(string.Format("{0}", Context.User));
+
+            if (string.Format("{0}", Context.User) == "cheecken0#7481")
+            {
+                await Task.Run(() =>
+                {
+                    var database = new Database("discord");
+
+                    var guildUsers = Context.Guild.GetUsersAsync().Result;
+
+                    var userList = Database.CheckExistingUser();
+
+                    StringBuilder query = new StringBuilder();
+
+                    foreach (string stuff in str)
+                    {
+                        query.Append(stuff + " ");
+                    }
+
+                    //SqlConnection connection = new SqlConnection();
+
+                    //table is the data (output) from which the query str provides
+                    var table = database.ExecuteQuery(query.ToString());
+
+                    StringBuilder output = new StringBuilder();
+
+                    output.Append("OUTPUT:\n\n");
+
+                    do
+                    {
+                        while (table.Read())
+                        {
+                            //reads the data from column "user_id"
+                            //table.NextResult(); //goes to the "next result" (?)
+
+                            var columnName = (string)table[0];
+                            //var columnType = (string)table["Type"];
+
+                            //and does something to it
+                            output.Append(columnName + /*" " + columnType +*/ "\n");
+
+                            //int columnNumber = 0;
+
+                            //var test = table.GetSqlValue(columnNumber).ToString(); //get content of columnNumber column
+
+                            //output.Append(test);
+
+                        }
+                    }
+                    while (table.NextResult());
+
+                    database.CloseConnection();
+
+                    Console.WriteLine(output);
+                    Console.WriteLine("\n");
+                });
+            }
+            else
+            {
+                await ReplyAsync(string.Format("You do not have the permissions to do this, {0}.", Context.User.Mention));
+            }
+        }
+
+
+
+
         [Command("leave")]
         [Summary("Forces bot to leave his home. Bot is now sad")]
         public async Task Leave()
