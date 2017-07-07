@@ -114,12 +114,11 @@ namespace MySecondDiscordBot
 
                 Database database = new Database("discord");
 
-                if(userBefore.Status.ToString() == "Offline")
+                StringBuilder sb = new StringBuilder();
+
+                if (userBefore.Status.ToString() == "Offline")
                 {
                     //Generate New Session when user status changes from offline to something else
-
-                    StringBuilder sb = new StringBuilder();
-
                     sb.Append(string.Format("INSERT INTO usersession  (session_start, session_end, user_id, user_ign, force_end) " +
                         "VALUES ('{0}', '{1}','{2}', '{3}','')", 
                         DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") ,""
@@ -144,8 +143,6 @@ namespace MySecondDiscordBot
                 {
                     //If user status goes offline, update session entry of session_end and force_end
 
-                    StringBuilder sb = new StringBuilder();
-
                     sb.Append(string.Format("UPDATE usersession SET session_end = '{0}' , force_end = '0' WHERE user_id = {1} AND force_end = NULL ",
                         DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),
                         userBefore.Id
@@ -164,22 +161,24 @@ namespace MySecondDiscordBot
                 }
                 else
                 {
+                    sb.Append(string.Format("INSERT INTO useractivity (session_id , status_before , status_after , game_id ,timestamp)" +
+                      "SELECT  session_id, '{0}', '{1}', '{2}', '{3}' FROM usersession WHERE user_id = '{5}';",
+                      userBefore.Status.ToString(), userAfter.Status.ToString(), userAfter.Game.ToString(), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),userBefore.Id));
 
+                    Console.WriteLine(string.Format("Existing User : {0} , Executing Command UpdateUser (Activity)", userBefore.Username));
+
+                    try
+                    {
+                        database.ExecuteQuery(sb.ToString());
+                    }
+                    catch
+                    {
+                        Console.WriteLine(string.Format("Error: {0} , Command Existing UpdateUser (Activity) Failed", userBefore.Username));
+                    }
                 }
             });
         }
 
-        //collects status change and uploads to database
-        //private async Task UpdateSQLServer(SocketGuildUser userBefore, SocketGuildUser userAfter)
-        //{
-        //    await Task.Run(() =>
-        //    {
-        //        string connectionString = null;
-        //        SqlConnection cnn;
-
-
-        //    });
-        //}
 
         private async Task HandleCommand(SocketMessage parameterMessage)
         {
