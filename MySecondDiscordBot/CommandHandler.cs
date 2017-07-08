@@ -152,9 +152,10 @@ namespace MySecondDiscordBot
                 {
                     database.ExecuteQuery(sb.ToString());
                 }
-                catch
+                catch(Exception e)
                 {
                     Console.WriteLine(string.Format("Error: {0} , Command UserLeft Failed", user.Username));
+                    Console.WriteLine(e.ToString());
                 }
 
             });
@@ -178,9 +179,10 @@ namespace MySecondDiscordBot
                     {
                         Database.EnterUser(user);
                     }
-                    catch
+                    catch(Exception e)
                     {
                         Console.WriteLine(string.Format("Error: {0} , Command AddUser Failed", user.Username));
+                        Console.WriteLine(e.ToString());
                     }
 
                     database.CloseConnection();
@@ -197,9 +199,10 @@ namespace MySecondDiscordBot
                     {
                         database.ExecuteQuery(sb.ToString());
                     }
-                    catch
+                    catch (Exception e)
                     {
                         Console.WriteLine(string.Format("Error: {0} , Command Existing AddUser Failed", user.Username));
+                        Console.WriteLine(e.ToString());
                     }
 
                 }
@@ -223,13 +226,20 @@ namespace MySecondDiscordBot
                 {
                     //Generate New Session when user status changes from offline to something else
                     sb.Append(string.Format("INSERT INTO usersession  (session_start, session_end, user_id, user_ign, force_end, guild_id) " +
-                        "VALUES ('{0}', '{1}','{2}', '{3}','',{4})", 
+                        "VALUES ('{0}', '{1}','{2}', '{3}','',{4});", 
                         DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") ,""
                         ,
                         userBefore.Id,
                         userBefore.Username,
-                        userBefore.Guild.ToString()
+                        userBefore.Guild.Id
                         ));
+
+                    //Update useractivity from status offline to online (or something)
+                    sb.Append(string.Format("INSERT INTO useractivity (user_ign, session_id , status_before , status_after , game_id ,timestamp)" +
+                      "SELECT  '{0}', session_id, '{1}', '{2}', '{3}','{4}' FROM usersession WHERE user_id = '{5}';",
+                      userBefore.Username, userBefore.Status.ToString(), userAfter.Status.ToString(), userAfter.Game.ToString(), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), userBefore.Id));
+
+                    Console.WriteLine(string.Format("Existing User : {0} , Executing Command UpdateUser (Activity)", userBefore.Username));
 
                     Console.WriteLine(string.Format("Existing User : {0} , Executing Command UpdateUser (Online)", userBefore.Username));
 
@@ -237,20 +247,27 @@ namespace MySecondDiscordBot
                     {
                         database.ExecuteQuery(sb.ToString());
                     }
-                    catch
+                    catch(Exception e)
                     {
                         Console.WriteLine(string.Format("Error: {0} , Command Existing UpdateUser (Online) Failed", userBefore.Username));
+                        Console.WriteLine(e.ToString());
                     }
 
                 }
                 else if(userAfter.Status.ToString() == "Offline")
                 {
                     //If user status goes offline, update session entry of session_end and force_end
-
-                    sb.Append(string.Format("UPDATE usersession SET session_end = '{0}' , force_end = '0' WHERE user_id = {1} AND force_end = NULL ",
+                    sb.Append(string.Format("UPDATE usersession SET session_end = '{0}' , force_end = '0' WHERE user_id = {1} AND force_end = NULL ;",
                         DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),
                         userBefore.Id
                         ));
+
+                    //Update activity of user
+                    sb.Append(string.Format("INSERT INTO useractivity (user_ign, session_id , status_before , status_after , game_id ,timestamp)" +
+                      "SELECT  '{0}', session_id, '{1}', '{2}', '{3}','{4}' FROM usersession WHERE user_id = '{5}';",
+                      userBefore.Username, userBefore.Status.ToString(), userAfter.Status.ToString(), userAfter.Game.ToString(), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),userBefore.Id));
+
+                    Console.WriteLine(string.Format("Existing User : {0} , Executing Command UpdateUser (Activity)", userBefore.Username));
 
                     Console.WriteLine(string.Format("Existing User : {0} , Executing Command UpdateUser (Offline)", userBefore.Username));
 
@@ -258,13 +275,15 @@ namespace MySecondDiscordBot
                     {
                         database.ExecuteQuery(sb.ToString());
                     }
-                    catch
+                    catch(Exception e)
                     {
                         Console.WriteLine(string.Format("Error: {0} , Command Existing UpdateUser (Offline) Failed", userBefore.Username));
+                        Console.WriteLine(e.ToString());
                     }
                 }
                 else
                 {
+                    //Update activity of user
                     sb.Append(string.Format("INSERT INTO useractivity (user_ign, session_id , status_before , status_after , game_id ,timestamp)" +
                       "SELECT  '{0}', session_id, '{1}', '{2}', '{3}','{4}' FROM usersession WHERE user_id = '{5}';",
                       userBefore.Username, userBefore.Status.ToString(), userAfter.Status.ToString(), userAfter.Game.ToString(), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),userBefore.Id));

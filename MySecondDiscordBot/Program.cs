@@ -4,7 +4,6 @@ using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
 using System.Runtime.InteropServices;
-using System.IO;
 using System.Text;
 
 namespace MySecondDiscordBot
@@ -13,11 +12,9 @@ namespace MySecondDiscordBot
     {
         static void Main(string[] args)
         {
-
             exitHandler = new ConsoleEventDelegate(ConsoleEventCallback);
             SetConsoleCtrlHandler(exitHandler, true);
             new Program().Start().GetAwaiter().GetResult();
-
         }
 
         //handles console closing
