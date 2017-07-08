@@ -132,8 +132,8 @@ namespace MySecondDiscordBot
         {
             var database = new Database("discord");
 
-            var str = string.Format("Insert INTO discorduser (user_id, user_ign, user_joindate, user_leftdate, userisjoin), ") +
-            string.Format("({0}, {1}, {2}, {3}, {4}) ,",
+            var str = string.Format("Insert INTO discorduser (user_id, user_ign, user_joindate, user_leftdate, user_isjoined) VALUES") +
+            string.Format("({0}, {1}, {2}, {3}, {4})",
                             "'" + user.Id + "'",
                             "'" + user.Username + "'",
                             "'" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "'",

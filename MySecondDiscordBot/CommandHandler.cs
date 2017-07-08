@@ -14,6 +14,8 @@ namespace MySecondDiscordBot
         private DiscordSocketClient client;
         private IDependencyMap map;
 
+        public static System.Collections.Generic.IReadOnlyCollection<SocketGuild> pGuildList;
+
         public async Task Install(IDependencyMap _map)
         {
             //create Command Service, inject it to Dependency map
@@ -42,15 +44,14 @@ namespace MySecondDiscordBot
             {
                 Console.WriteLine("Initiate Boot Sequence");
                 //Guild list in IReadOnlyCollection<SocketGuild>
-                var guildList = client.Guilds;
+                pGuildList = client.Guilds;
 
                 //String for query (unsafe)
                 StringBuilder sbsession = new StringBuilder();
                 StringBuilder sbactivity = new StringBuilder();
 
-                //Add any users not in discorduser table
-
                 Console.WriteLine("Getting users from database");
+
                 //Read from table discorduser
                 var dbUserList = Database.CheckExistingUser();
 
@@ -65,7 +66,7 @@ namespace MySecondDiscordBot
                 sbactivity.Append("SET ANSI_WARNINGS OFF;");
 
                 //check list of guilds the bot is 
-                foreach (SocketGuild guild in guildList)
+                foreach (SocketGuild guild in pGuildList)
                 {
                     Console.WriteLine(string.Format("Guild Name: {0}, Guild Id: {1}", guild.Name, guild.Id));
                     //Gets list of users in guild which are online
@@ -88,7 +89,7 @@ namespace MySecondDiscordBot
                                 DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),"",user.Id, user.Username, "", guild.Id));
 
                             //Generate new user activity
-                            sbactivity.Append(string.Format("INSERT INTO useractivity (user_ign ,session_id , status_before , status_after , game_id , timestamp) SELECT '{0}', session_id, '{1}', '{2}', '{3}', '{4}' FROM usersession WHERE user_id = '{5}';",
+                            sbactivity.Append(string.Format("INSERT INTO useractivity (user_ign ,session_id , status_before , status_after , game_id , timestamp) SELECT '{0}', session_id, '{1}', '{2}', '{3}', '{4}' FROM usersession WHERE user_id = '{5}' AND session_end = '';",
                                 user.Username, "Console Inactive", user.Status.ToString(), user.Game.ToString(), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), user.Id));
 
 

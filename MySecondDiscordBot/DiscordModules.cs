@@ -328,25 +328,6 @@ namespace MySecondDiscordBot
         private static string GetUptime()
             => (DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss");
 
-        //DoAnnouncement method which calls the ConstructMessage method to create a message based on arguments on !announce
-        //private async Task DoAnnouncement(CommandEventArgs e)
-        //{
-        //    Console.WriteLine("{0}", e.Args[0]);
-
-        //    var channel = e.Server.FindChannels(e.Args[0], ChannelType.Text).FirstOrDefault();
-
-        //    var message = ConstructMessage(e, channel != null);
-
-        //    if (channel != null)
-        //    {
-        //        await channel.SendMessage(message);
-        //    }
-        //    else
-        //    {
-        //        await e.Channel.SendMessage(message);
-        //    }
-        //}
-
         //Message constructor when called by DoAnnouncement
         private string ConstructMessage(string[] str)
         {

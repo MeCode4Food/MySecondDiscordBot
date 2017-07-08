@@ -31,13 +31,35 @@ namespace MySecondDiscordBot
                 Database database = new Database("discord");
                 StringBuilder sb = new StringBuilder();
 
-                sb.Append(string.Format("UPDATE usersession SET session_end = '{0}', force_end = '1'  WHERE force_end = ''",DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff")));
+                
+                Console.WriteLine("useractivity Cleanup");
+                //Get user online list
+                foreach(SocketGuild guild in CommandHandler.pGuildList)
+                {
+                    var userList = guild.Users;
+                    foreach(SocketUser user in userList)
+                    {
+                        if(user.Status.ToString() != "Offline")
+                        {
+                            sb.Append(string.Format("INSERT INTO useractivity (user_ign ,session_id , status_before , status_after , game_id , timestamp) SELECT '{0}', session_id, '{1}', '{2}', '{3}', '{4}' FROM usersession WHERE user_id = '{5}' AND session_end = '1900-01-01 00:00:00.000';",
+                                user.Username,  user.Status.ToString(), "Console Inactive","", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), user.Id));
+                        }
+                    }
+                }
+
+                Console.WriteLine("usersession Cleanup");
+                sb.Append(string.Format("UPDATE usersession SET session_end = '{0}', force_end = '1'  WHERE force_end = '' AND session_end = '1900-01-01 00:00:00.000';", DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff")));
+
+
+                //Update data entries for each online user
 
                 Console.WriteLine(string.Format("Executing Command Cleanup"));
 
                 try
                 {
                     database.ExecuteQuery(sb.ToString());
+                    Console.WriteLine(string.Format("Command Cleanup Success, Shutting Down..."));
+                    Task.Delay(200);
                 }
                 catch
                 {
