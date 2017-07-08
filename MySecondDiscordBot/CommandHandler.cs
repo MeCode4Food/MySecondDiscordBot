@@ -27,10 +27,112 @@ namespace MySecondDiscordBot
             //Adds assembly to command service
             await commands.AddModulesAsync(Assembly.GetEntryAssembly());
 
+            client.Ready += StartUserSession;
+
             client.MessageReceived += HandleCommand;
             client.UserJoined += AddUser;
-            client.GuildMemberUpdated += UserUpdated;
             client.UserLeft += UserLeft;
+            client.GuildMemberUpdated += UserUpdated;
+        }
+
+        //Update user session when bot comes online
+        private async Task StartUserSession()
+        {
+            await Task.Run(() =>
+            {
+                Console.WriteLine("Initiate Boot Sequence");
+                //Guild list in IReadOnlyCollection<SocketGuild>
+                var guildList = client.Guilds;
+
+                //String for query (unsafe)
+                StringBuilder sbsession = new StringBuilder();
+                StringBuilder sbactivity = new StringBuilder();
+
+                //Add any users not in discorduser table
+
+                Console.WriteLine("Getting users from database");
+                //Read from table discorduser
+                var dbUserList = Database.CheckExistingUser();
+
+                //Compare with list from guild(s?)
+                
+                //Add new user if not found
+
+                //String for session query string
+                sbsession.Append("INSERT INTO usersession  (session_start , session_end , user_id , user_ign , force_end , guild_id ) VALUES ");
+
+                //String for activity query string
+                sbactivity.Append("SET ANSI_WARNINGS OFF;");
+
+                //check list of guilds the bot is 
+                foreach (SocketGuild guild in guildList)
+                {
+                    Console.WriteLine(string.Format("Guild Name: {0}, Guild Id: {1}", guild.Name, guild.Id));
+                    //Gets list of users in guild which are online
+
+                    var userList = guild.Users;
+
+                    Console.WriteLine("Updating database entry, session and activity for users");
+                    foreach (SocketUser user in userList)
+                    {
+                        //Compare current user with database, if not found then update user database
+                        if(!dbUserList.Contains(user.Id.ToString()))
+                        {
+                            Database.EnterUser(user);
+                        }
+
+                        if(user.Status.ToString() != "Offline")
+                        {
+                            //Generate new user session
+                            sbsession.Append(string.Format("('{0}', '{1}','{2}','{3}','{4}','{5}'),",
+                                DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),"",user.Id, user.Username, "", guild.Id));
+
+                            //Generate new user activity
+                            sbactivity.Append(string.Format("INSERT INTO useractivity (user_ign ,session_id , status_before , status_after , game_id , timestamp) SELECT '{0}', session_id, '{1}', '{2}', '{3}', '{4}' FROM usersession WHERE user_id = '{5}';",
+                                user.Username, "Console Inactive", user.Status.ToString(), user.Game.ToString(), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), user.Id));
+
+
+                        }
+                    }
+                    
+                }
+                //Remove comma from sbsession string and add semi colon behind
+                sbsession.Remove(sbsession.Length - 1, 1);
+                sbsession.Append(";");
+
+                Console.WriteLine(string.Format("Executing Command StartUserSession"));
+
+                //instantiate database
+
+                Database database = new Database("discord");
+                
+                try
+                {
+                    database.ExecuteQuery(sbsession.ToString());
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(string.Format("Command StartUserSession Failed"));
+                    Console.WriteLine(sbsession.ToString());
+                    Console.WriteLine(e.ToString());
+                }
+
+                Database database1 = new Database("discord");
+
+                try
+                {
+                    database1.ExecuteQuery(sbactivity.ToString());
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(string.Format("Command StartUserSession Failed"));
+                    Console.WriteLine(sbactivity.ToString());
+                    Console.WriteLine(e.ToString());
+                }
+                database.CloseConnection();
+
+
+            });
         }
 
         private async Task UserLeft(SocketGuildUser user)
@@ -119,12 +221,13 @@ namespace MySecondDiscordBot
                 if (userBefore.Status.ToString() == "Offline")
                 {
                     //Generate New Session when user status changes from offline to something else
-                    sb.Append(string.Format("INSERT INTO usersession  (session_start, session_end, user_id, user_ign, force_end) " +
-                        "VALUES ('{0}', '{1}','{2}', '{3}','')", 
+                    sb.Append(string.Format("INSERT INTO usersession  (session_start, session_end, user_id, user_ign, force_end, guild_id) " +
+                        "VALUES ('{0}', '{1}','{2}', '{3}','',{4})", 
                         DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") ,""
                         ,
                         userBefore.Id,
-                        userBefore.Username
+                        userBefore.Username,
+                        userBefore.Guild.ToString()
                         ));
 
                     Console.WriteLine(string.Format("Existing User : {0} , Executing Command UpdateUser (Online)", userBefore.Username));
@@ -161,9 +264,9 @@ namespace MySecondDiscordBot
                 }
                 else
                 {
-                    sb.Append(string.Format("INSERT INTO useractivity (session_id , status_before , status_after , game_id ,timestamp)" +
-                      "SELECT  session_id, '{0}', '{1}', '{2}', '{3}' FROM usersession WHERE user_id = '{5}';",
-                      userBefore.Status.ToString(), userAfter.Status.ToString(), userAfter.Game.ToString(), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),userBefore.Id));
+                    sb.Append(string.Format("INSERT INTO useractivity (user_ign, session_id , status_before , status_after , game_id ,timestamp)" +
+                      "SELECT  '{0}', session_id, '{1}', '{2}', '{3}','{4}' FROM usersession WHERE user_id = '{5}';",
+                      userBefore.Username, userBefore.Status.ToString(), userAfter.Status.ToString(), userAfter.Game.ToString(), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),userBefore.Id));
 
                     Console.WriteLine(string.Format("Existing User : {0} , Executing Command UpdateUser (Activity)", userBefore.Username));
 
@@ -171,9 +274,10 @@ namespace MySecondDiscordBot
                     {
                         database.ExecuteQuery(sb.ToString());
                     }
-                    catch
+                    catch(Exception e)
                     {
                         Console.WriteLine(string.Format("Error: {0} , Command Existing UpdateUser (Activity) Failed", userBefore.Username));
+                        Console.WriteLine(e.ToString());
                     }
                 }
             });

@@ -14,8 +14,8 @@ namespace MySecondDiscordBot
         static void Main(string[] args)
         {
 
-            handler1 = new ConsoleEventDelegate(ConsoleEventCallback);
-            SetConsoleCtrlHandler(handler1, true);
+            exitHandler = new ConsoleEventDelegate(ConsoleEventCallback);
+            SetConsoleCtrlHandler(exitHandler, true);
             new Program().Start().GetAwaiter().GetResult();
 
         }
@@ -31,7 +31,7 @@ namespace MySecondDiscordBot
                 Database database = new Database("discord");
                 StringBuilder sb = new StringBuilder();
 
-                sb.Append(string.Format("UPDATE usersession SET session_end = '{0}', force_end = '1'  WHERE force_end = ''"));
+                sb.Append(string.Format("UPDATE usersession SET session_end = '{0}', force_end = '1'  WHERE force_end = ''",DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff")));
 
                 Console.WriteLine(string.Format("Executing Command Cleanup"));
 
@@ -46,7 +46,7 @@ namespace MySecondDiscordBot
             }
             return false;
         }
-        static ConsoleEventDelegate handler1;   // Keeps it from getting garbage collected
+        static ConsoleEventDelegate exitHandler;   // Keeps it from getting garbage collected
         
         // Pinvoke
         private delegate bool ConsoleEventDelegate(int eventType);
@@ -77,33 +77,11 @@ namespace MySecondDiscordBot
 
             handler = new CommandHandler();
             await handler.Install(map);
-
-
-
-            ////5 minutes timed function
-            //var startTimeSpan = TimeSpan.Zero;
-            //var periodTimeSpan = TimeSpan.FromSeconds(10);
-
-
-            ////var timer = new System.Threading.Timer((e) =>
-            ////{
-            ////    userOnlineDump();
-            ////}, null, startTimeSpan, periodTimeSpan);
-
-            //Block this program until this is closed;
             
 
             await Task.Delay(-1);
         }
-
-        private async void userOnlineDump()
-        {
-            await Task.Run(() =>
-            {
-                Console.WriteLine("Channels Joined: {0}, {1}", client.Guilds.Count.ToString(), client.Guilds.ToString());
-            })
-            ;
-        }
+        
         private Task UserUpdated(EventArgs e)
         {
 
