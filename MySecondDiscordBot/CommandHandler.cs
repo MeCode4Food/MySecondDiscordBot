@@ -106,33 +106,13 @@ namespace MySecondDiscordBot
                 //instantiate database
 
                 Database database = new Database("discord");
-                
-                try
-                {
-                    database.ExecuteQuery(sbsession.ToString());
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(string.Format("Command StartUserSession Failed"));
-                    Console.WriteLine(sbsession.ToString());
-                    Console.WriteLine(e.ToString());
-                }
+
+                Database.QueryAnnounce(database, sbsession, "StartUserSessions");
 
                 Database database1 = new Database("discord");
 
-                try
-                {
-                    database1.ExecuteQuery(sbactivity.ToString());
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(string.Format("Command StartUserSession Failed"));
-                    Console.WriteLine(sbactivity.ToString());
-                    Console.WriteLine(e.ToString());
-                }
-                database.CloseConnection();
-
-
+                Database.QueryAnnounce(database1, sbactivity, "StartUserActivities");
+                
             });
         }
 
@@ -146,18 +126,7 @@ namespace MySecondDiscordBot
 
                 sb.Append(string.Format("UPDATE discorduser SET user_isjoined = '0' WHERE user_id = {0}", user.Id ));
 
-                Console.WriteLine(string.Format("User : {0} , Executing Command UserLeft", user.Username));
-
-                try
-                {
-                    database.ExecuteQuery(sb.ToString());
-                }
-                catch(Exception e)
-                {
-                    Console.WriteLine(string.Format("Error: {0} , Command UserLeft Failed", user.Username));
-                    Console.WriteLine(e.ToString());
-                }
-
+                Database.QueryAnnounce(database, sb, "UserLeft", user);
             });
         }
 
@@ -193,18 +162,7 @@ namespace MySecondDiscordBot
 
                     sb.Append(string.Format("UPDATE discorduser SET user_isjoined = '1' WHERE user_id = {0}", user.Id));
 
-                    Console.WriteLine(string.Format("Existing User : {0} , Executing Command AddUser", user.Username));
-
-                    try
-                    {
-                        database.ExecuteQuery(sb.ToString());
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(string.Format("Error: {0} , Command Existing AddUser Failed", user.Username));
-                        Console.WriteLine(e.ToString());
-                    }
-
+                    Database.QueryAnnounce(database, sb, "AddUser", user);
                 }
             });
         }
@@ -239,19 +197,7 @@ namespace MySecondDiscordBot
                       "SELECT  '{0}', session_id, '{1}', '{2}', '{3}','{4}' FROM usersession WHERE user_id = '{5}';",
                       userBefore.Username, userBefore.Status.ToString(), userAfter.Status.ToString(), userAfter.Game.ToString(), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), userBefore.Id));
 
-                    Console.WriteLine(string.Format("Existing User : {0} , Executing Command UpdateUser (Activity)", userBefore.Username));
-
-                    Console.WriteLine(string.Format("Existing User : {0} , Executing Command UpdateUser (Online)", userBefore.Username));
-
-                    try
-                    {
-                        database.ExecuteQuery(sb.ToString());
-                    }
-                    catch(Exception e)
-                    {
-                        Console.WriteLine(string.Format("Error: {0} , Command Existing UpdateUser (Online) Failed", userBefore.Username));
-                        Console.WriteLine(e.ToString());
-                    }
+                    Database.QueryAnnounce(database, sb, "UpdateUser - Online", userBefore);
 
                 }
                 else if(userAfter.Status.ToString() == "Offline")
@@ -267,19 +213,7 @@ namespace MySecondDiscordBot
                       "SELECT  '{0}', session_id, '{1}', '{2}', '{3}','{4}' FROM usersession WHERE user_id = '{5}';",
                       userBefore.Username, userBefore.Status.ToString(), userAfter.Status.ToString(), userAfter.Game.ToString(), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),userBefore.Id));
 
-                    Console.WriteLine(string.Format("Existing User : {0} , Executing Command UpdateUser (Activity)", userBefore.Username));
-
-                    Console.WriteLine(string.Format("Existing User : {0} , Executing Command UpdateUser (Offline)", userBefore.Username));
-
-                    try
-                    {
-                        database.ExecuteQuery(sb.ToString());
-                    }
-                    catch(Exception e)
-                    {
-                        Console.WriteLine(string.Format("Error: {0} , Command Existing UpdateUser (Offline) Failed", userBefore.Username));
-                        Console.WriteLine(e.ToString());
-                    }
+                    Database.QueryAnnounce(database, sb, "UpdateUser - Offline", userBefore);
                 }
                 else
                 {
@@ -288,17 +222,7 @@ namespace MySecondDiscordBot
                       "SELECT  '{0}', session_id, '{1}', '{2}', '{3}','{4}' FROM usersession WHERE user_id = '{5}';",
                       userBefore.Username, userBefore.Status.ToString(), userAfter.Status.ToString(), userAfter.Game.ToString(), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),userBefore.Id));
 
-                    Console.WriteLine(string.Format("Existing User : {0} , Executing Command UpdateUser (Activity)", userBefore.Username));
-
-                    try
-                    {
-                        database.ExecuteQuery(sb.ToString());
-                    }
-                    catch(Exception e)
-                    {
-                        Console.WriteLine(string.Format("Error: {0} , Command Existing UpdateUser (Activity) Failed", userBefore.Username));
-                        Console.WriteLine(e.ToString());
-                    }
+                    Database.QueryAnnounce(database, sb, "UpdateUser - Activity", userBefore);
                 }
             });
         }

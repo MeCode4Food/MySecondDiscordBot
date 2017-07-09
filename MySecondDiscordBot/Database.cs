@@ -3,6 +3,8 @@ using System.Data.SqlClient;
 using Discord;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using Discord.WebSocket;
 
 namespace MySecondDiscordBot
 {
@@ -143,6 +145,40 @@ namespace MySecondDiscordBot
 
 
             var table = database.ExecuteQuery(str);
+
+            database.CloseConnection();
+        }
+
+        public static void QueryAnnounce(Database database, StringBuilder sb, string CommandName)
+        {
+            Console.Write(string.Format("{0} Executing Command: {1}... ", DateTime.Now.ToString("hh:mm:ss"), CommandName));
+
+            try
+            {
+                database.ExecuteQuery(sb.ToString());
+                Console.WriteLine("Success.");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(string.Format("Failed, Error: {1}", CommandName, e.ToString()));
+            }
+
+            database.CloseConnection();
+        }
+
+        public static void QueryAnnounce(Database database, StringBuilder sb, string CommandName, SocketUser user)
+        {
+            Console.Write(string.Format("{0} Executing Command: {1} by {2}", DateTime.Now.ToString("hh:mm:ss"), CommandName, user.Username));
+
+            try
+            {
+                database.ExecuteQuery(sb.ToString());
+                Console.WriteLine("Success.");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(string.Format("Failed, Error: {1}", CommandName, e.ToString()));
+            }
 
             database.CloseConnection();
         }

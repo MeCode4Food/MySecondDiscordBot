@@ -50,18 +50,8 @@ namespace MySecondDiscordBot
 
                 //Update data entries for each online user
 
-                Console.WriteLine(string.Format("Executing Command Cleanup"));
-
-                try
-                {
-                    database.ExecuteQuery(sb.ToString());
-                    Console.WriteLine(string.Format("Command Cleanup Success, Shutting Down..."));
-                    Task.Delay(200);
-                }
-                catch
-                {
-                    Console.WriteLine(string.Format("Error: Command Cleanup Failed"));
-                }
+                Database.QueryAnnounce(database, sb, "Cleanup");
+                
             }
             return false;
         }
@@ -112,5 +102,7 @@ namespace MySecondDiscordBot
             Console.WriteLine(msg.ToString());
             return Task.CompletedTask;
         }
+
+        
     }
 }
